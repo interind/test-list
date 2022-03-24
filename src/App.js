@@ -1,47 +1,38 @@
 import { useState, useEffect } from 'react';
 import List from './components/List';
-// import info from './config/res.json';
-import getUrlForRequest from './config/config.js';
+import Preloader from './components/Preloader/Preloader';
+import { getUrlForRequest, getFormatDate } from './util/util';
 import logo from './logo.svg';
 import './App.css';
-import ToolType from './components/ToolType';
 
 function App() {
   const date = Date.now();
-  const [listCurrency, setListCurrency] = useState([]);
-  const getListCurrency = ({ Valute: value }) => Object.entries(value);
-
-  // const getPrevUrl = (data) => `https:${data.PreviousURL}`;
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleString('ru', {
-      day:   '2-digit',
-      month: '2-digit',
-      year:  '2-digit'
-    });
-  };
-
+  const [listCurrency, setListCurrency] = useState({});
+  const [status, setStatus] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getUrlForRequest(date)
+    getUrlForRequest()
       .then(result => {
-        setListCurrency([...listCurrency, getListCurrency(result)]);
+        setListCurrency(result);
+        setLoading(false);
+        setStatus(true);
       })
       .catch((err) => console.error(err))
-    // getListCurrency(JSON.parse(JSON.stringify(info)))
+      .finally(() => setLoading(false));
   }, [])
 
   return (
     <div className="App">
       <header className="App-header">
+        {loading && <Preloader />}
         <img src={logo} className="App-logo" alt="logo" />
-        <h1>{formatDate(date)}</h1>
-        {listCurrency.length ?
-          <List arr={listCurrency} />
+        <h1>{getFormatDate(date)}</h1>
+        {status ?
+          <List dataList={listCurrency} />
           : <p>Данные временно недоступны</p>
         }
       </header>
-      <ToolType />
     </div>
   );
 }
